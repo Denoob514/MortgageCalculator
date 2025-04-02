@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canadian Mortgage Calculator</title>
+    <style>
+        :root {
+            --primary-color: #0A1F44;
+            --secondary-color: #C5A253;
+            --light-bg: #F5F6F8;
+            --medium-bg: #DDE3EE;
+            --border-color: #ccc;
+            --text-dark: #000;
+            --text-medium: #666;
+            --error-color: #d9534f;
+            --success-color: #5cb85c;
+            --focus-outline: 2px solid var(--secondary-color);
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .mortgage-calculator {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .calculator-column {
+            padding: 25px;
+        }
+
+        .left-column {
+            background: var(--light-bg);
+        }
+
+        .results-column {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        input:focus, select:focus, button:focus {
+            outline: var(--focus-outline);
+            outline-offset: 2px;
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230A1F44'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 12px;
+        }
+
+        .toggle-container {
+            margin-bottom: 15px;
+        }
+
+        .toggle-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .option-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .option-toggle-option {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-toggle-option.selected {
+            border-color: var(--secondary-color);
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .option-toggle-option:focus {
+            position: relative;
+            z-index: 1;
+        }
+
+        .city-container {
+            margin-top: 10px;
+            display: none;
+        }
+
+        .result-item {
+            margin: 25px 0;
+        }
+
+        .payment-section {
+            margin: 30px 0;
+        }
+
+        .payment-amount {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .payment-description {
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .result-label {
+            font-size: 16px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .result-value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .divider {
+            height: 1px;
+            background: rgba(255,255,255,0.2);
+            margin: 20px 0;
+        }
+
+        .tax-breakdown {
+            font-size: 14px;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+
+        .tax-breakdown div {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .tax-breakdown .tax-subtotal {
+            border-top: 1px dashed rgba(255,255,255,0.3);
+            padding-top: 8px;
+            margin-top: 8px;
+        }
+
+        .tax-breakdown .tax-total {
+            border-top: 1px solid rgba(255,255,255,0.5);
+            padding-top: 8px;
+            margin-top: 8px;
+            font-weight: bold;
+        }
+
+        .schedule-container {
+            grid-column: 1 / -1;
+            padding: 0 25px 25px;
+        }
+
+        .schedule-toggle {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        .schedule-toggle:hover {
+            background: #b08c42;
+        }
+
+        .schedule-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 25px rgba(0,0,0,0.3);
+            z-index: 1000;
+            max-height: 80vh;
+            overflow-y: auto;
+            width: 90%;
+            max-width: 800px;
+            display: none;
+        }
+
+        .schedule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .schedule-header h3 {
+            margin: 0;
+            color: var(--primary-color);
+        }
+
+        .close-schedule {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-medium);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th, td {
+            padding: 10px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--primary-color);
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:nth-child(even) {
+            background-color: var(--light-bg);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .province-container {
+            display: block;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .input-error {
+            border-color: var(--error-color);
+        }
+
+        .rate-disclaimer {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .tax-disclaimer {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 10px;
+            font-style: italic;
+            line-height: 1.4;
+        }
+
+        /* Tooltip Styles */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+            margin-left: 4px;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 280px;
+            background-color: var(--primary-color);
+            color: white;
+            text-align: left;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 14px;
+            line-height: 1.4;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--primary-color) transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .tooltip-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .mortgage-calculator {
+                grid-template-columns: 1fr;
+            }
+            
+            .payment-amount {
+                font-size: 28px;
+            }
+            
+            .schedule-popup {
+                width: 95%;
+                padding: 15px;
+            }
+
+            .tooltip .tooltiptext {
+                width: 220px;
+                left: 100%;
+                transform: translateX(-100%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mortgage-calculator">
+        <!-- Input Column -->
+        <div class="calculator-column left-column">
+            <div class="input-section">
+                <label for="province">Province:</label>
+                <div class="province-container">
+                    <select id="province" aria-label="Select your province">
+                        <option value="AB">Alberta</option>
+                        <option value="BC">British Columbia</option>
+                        <option value="MB">Manitoba</option>
+                        <option value="NB">New Brunswick</option>
+                        <option value="NL">Newfoundland and Labrador</option>
+                        <option value="NS">Nova Scotia</option>
+                        <option value="ON">Ontario</option>
+                        <option value="PE">Prince Edward Island</option>
+                        <option value="QC" selected>Quebec</option>
+                        <option value="SK">Saskatchewan</option>
+                    </select>
+                    
+                    <div class="city-container" id="city-container">
+                        <label for="city">Major City (optional):</label>
+                        <select id="city" aria-label="Select your city">
+                            <option value="">-- Select a city --</option>
+                            <option value="Montreal" selected>Montreal</option>
+                            <option value="Quebec City">Quebec City</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="toggle-container">
+                <div class="toggle-label">
+                    First-Time Home Buyer
+                    <div class="tooltip">
+                        <span class="tooltip-icon">?</span>
+                        <span class="tooltiptext">
+                            <strong>First-Time Home Buyer Benefits:</strong><br>
+                            • <u>CRA Tax Credit</u>: $1,500 non-refundable tax credit<br>
+                            • <u>Provincial Benefits</u>: Varies by province (ON: $4,000, BC: $8,250, QC: $750)<br>
+                            • <u>RRSP Withdrawal (HBP)</u>: Up to $35,000 tax-free withdrawal<br>
+                            • <u>FHSA</u>: Up to $40,000 tax-free savings for first home
+                        </span>
+                    </div>
+                </div>
+                <div class="option-toggle first-time-toggle" role="radiogroup" aria-labelledby="first-time-label">
+                    <div class="option-toggle-option selected" data-value="no" role="radio" aria-checked="true" tabindex="0">No</div>
+                    <div class="option-toggle-option" data-value="yes" role="radio" aria-checked="false" tabindex="0">Yes</div>
+                </div>
+                
+                <div class="first-time-fields" style="display: none;">
+                    <label for="rrsp-amount">
+                        RRSP Withdrawal (HBP)
+                        <div class="tooltip">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltiptext">
+                                <strong>Home Buyers' Plan (HBP):</strong><br>
+                                • Withdraw up to $35,000 tax-free from RRSP<br>
+                                • Must be repaid within 15 years<br>
+                                • First repayment due 2 years after withdrawal<br>
+                                • Available to first-time buyers only
+                            </span>
+                        </div>
+                    </label>
+                    <input type="text" id="rrsp-amount" value="0">
+                    
+                    <label for="fhsa-amount">
+                        FHSA Savings Used
+                        <div class="tooltip">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltiptext">
+                                <strong>First Home Savings Account (FHSA):</strong><br>
+                                • Save up to $40,000 tax-free for first home<br>
+                                • Annual contribution limit: $8,000<br>
+                                • Tax-deductible contributions<br>
+                                • Tax-free withdrawals for home purchase<br>
+                                • Must be used within 15 years
+                            </span>
+                        </div>
+                    </label>
+                    <input type="text" id="fhsa-amount" value="0">
+                </div>
+            </div>
+
+            <div class="input-section">
+                <label for="amount">Purchase Price:</label>
+                <input type="text" id="amount" value="800,000" aria-describedby="amount-error">
+                <div id="amount-error" class="error-message"></div>
+            </div>
+
+            <div class="input-section">
+                <label>Down Payment:</label>
+                <div class="option-toggle downpayment-toggle" role="radiogroup" aria-labelledby="downpayment-label">
+                    <div class="option-toggle-option" data-percent="5" role="radio" aria-checked="false" tabindex="0">5%</div>
+                    <div class="option-toggle-option" data-percent="10" role="radio" aria-checked="false" tabindex="0">10%</div>
+                    <div class="option-toggle-option" data-percent="15" role="radio" aria-checked="false" tabindex="0">15%</div>
+                    <div class="option-toggle-option selected" data-percent="20" role="radio" aria-checked="true" tabindex="0">20%</div>
+                </div>
+                <input type="text" id="downpayment" value="160,000.00" aria-describedby="downpayment-error">
+                <div id="downpayment-error" class="error-message"></div>
+            </div>
+
+            <div class="input-section">
+                <label for="pmi">
+                    CMHC Insurance
+                    <div class="tooltip">
+                        <span class="tooltip-icon">?</span>
+                        <span class="tooltiptext">
+                            <strong>CMHC Mortgage Insurance:</strong><br>
+                            Required for down payments less than 20%<br>
+                            • 5-9.99% down: 4% premium<br>
+                            • 10-14.99% down: 3.1% premium<br>
+                            • 15-19.99% down: 2.8% premium<br>
+                            Added to your mortgage amount
+                        </span>
+                    </div>
+                </label>
+                <input type="text" id="pmi" value="0" readonly>
+                <div id="cmhc-help" class="help-text" style="display: none;">Required for down payments less than 20%</div>
+            </div>
+
+            <div class="input-section">
+                <label for="interest">Interest Rate (%):</label>
+                <input type="text" id="interest" value="4.20" aria-describedby="interest-error">
+                <div id="interest-error" class="error-message"></div>
+            </div>
+
+            <div class="input-section">
+                <label for="loan-term">Loan Term:</label>
+                <select id="loan-term" aria-label="Select loan term">
+                    <option value="5">5 Years</option>
+                    <option value="10">10 Years</option>
+                    <option value="15">15 Years</option>
+                    <option value="20">20 Years</option>
+                    <option value="25" selected>25 Years</option>
+                    <option value="30">30 Years</option>
+                </select>
+            </div>
+
+            <div class="input-section">
+                <label for="payment-frequency">Payment Frequency:</label>
+                <select id="payment-frequency" aria-label="Select payment frequency">
+                    <option value="monthly">Monthly</option>
+                    <option value="biweekly">Bi-Weekly</option>
+                    <option value="accelerated-biweekly">Accelerated Bi-Weekly</option>
+                    <option value="weekly">Weekly</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Results Column - Fixed and Updated -->
+        <div class="calculator-column results-column">
+            <div class="scenario-header">MORTGAGE SUMMARY</div>
+
+            <div class="payment-section">
+                <div class="payment-amount" id="paymentLabel">$3,819.33</div>
+                <div class="payment-description" id="paymentDescription">Monthly Payment</div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="result-row" id="rrsp-row">
+                <div class="result-label">
+                    RRSP (HBP) Used
+                    <div class="tooltip">
+                        <span class="tooltip-icon">?</span>
+                        <span class="tooltiptext">
+                            <strong>Home Buyers' Plan (HBP):</strong><br>
+                            • Withdrew $0 tax-free from RRSP<br>
+                            • Must be repaid within 15 years<br>
+                            • First repayment due 2 years after withdrawal
+                        </span>
+                    </div>
+                </div>
+                <div class="result-value" id="rrsp-used">$0</div>
+            </div>
+            
+            <div class="result-row" id="fhsa-row">
+                <div class="result-label">
+                    FHSA Used
+                    <div class="tooltip">
+                        <span class="tooltip-icon">?</span>
+                        <span class="tooltiptext">
+                            <strong>First Home Savings Account:</strong><br>
+                            • Withdrew $0 tax-free<br>
+                            • Annual contribution limit: $8,000<br>
+                            • Lifetime limit: $40,000
+                        </span>
+                    </div>
+                </div>
+                <div class="result-value" id="fhsa-used">$0</div>
+            </div>
+            
+            <div class="result-row">
+                <div class="result-label">
+                    CRA Tax Credit
+                    <div class="tooltip">
+                        <span class="tooltip-icon">?</span>
+                        <span class="tooltiptext">
+                            <strong>First-Time Home Buyers' Tax Credit:</strong><br>
+                            • $1,500 non-refundable tax credit<br>
+                            • Reduces federal tax payable<br>
+                            • Available to first-time buyers only
+                        </span>
+                    </div>
+                </div>
+                <div class="result-value" id="cra-tax-credit">$0</div>
+            </div>
+            
+            <div class="result-row">
+                <div class="result-label">
+                    Provincial Benefits
+                    <div class="tooltip">
+                        <span class="tooltip-icon">?</span>
+                        <span class="tooltiptext">
+                            <strong>Provincial First-Time Buyer Programs:</strong><br>
+                            • ON: Land transfer tax rebate up to $4,000<br>
+                            • BC: Property transfer tax exemption up to $8,250<br>
+                            • QC: $750 refundable tax credit<br>
+                            • PE: $2,000 provincial tax credit
+                        </span>
+                    </div>
+                </div>
+                <div class="result-value" id="provincial-benefit">$0</div>
+            </div>
+            
+            <div class="result-row">
+                <div class="result-label">Total Benefits</div>
+                <div class="result-value" id="total-benefits">$0</div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="result-row">
+                <div class="result-label" id="landTransferTaxLabel">
+                    Land Transfer Tax
+                    <div class="tooltip">
+                        <span class="tooltip-icon">?</span>
+                        <span class="tooltiptext">
+                            <strong>Land Transfer Tax:</strong><br>
+                            • Provincial tax paid when purchasing property<br>
+                            • <u>Not applicable in AB/SK/MB</u><br>
+                            • Rates vary by province (ON/BC highest)<br>
+                            • First-time buyers may qualify for rebates
+                        </span>
+                    </div>
+                </div>
+                <div class="result-value" id="landTransferTax">$0.00</div>
+            </div>
+            
+            <div class="result-row">
+                <div class="result-label">
+                    Municipal Tax
+                    <div class="tooltip">
+                        <span class="tooltip-icon">?</span>
+                        <span class="tooltiptext">
+                        <strong>Municipal Property Tax:</strong><br>
+                          • Annual tax based on property value<br>
+                          • Rate varies by municipality<br>
+                          • Typically paid monthly or annually<br>
+                          • Calculated using current rates per $100,000 of value<br>
+                            <em>Actual taxes may vary based on assessment</em>
+                        </span>
+                    </div>
+                </div>
+                <div class="result-value" id="propertyTax">$12,000.00</div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="result-row">
+                <div class="result-label">
+                    Total Interest Paid
+                    <div class="tooltip">
+                        <span class="tooltip-icon">?</span>
+                        <span class="tooltiptext">
+                            <strong>Total Interest Over Loan Term:</strong><br>
+                            • Based on your interest rate and payment schedule<br>
+                            • Includes all interest paid over the life of the mortgage<br>
+                            • Making extra payments reduces this amount
+                        </span>
+                    </div>
+                </div>
+                <div class="result-value" id="totalInterest">$345,799.80</div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="result-row">
+                <div class="result-label">
+                    Total Mortgage Paid
+                    <div class="tooltip">
+                        <span class="tooltip-icon">?</span>
+                        <span class="tooltiptext">
+                            <strong>Total Mortgage Cost:</strong><br>
+                            • Includes principal + interest only<br>
+                            • Does not include taxes or insurance<br>
+                            • Actual homeownership costs will be higher
+                        </span>
+                    </div>
+                </div>
+                <div class="result-value" id="totalPaid">$1,145,799.80</div>
+            </div>
+            <div class="tax-disclaimer">
+    <strong>Note:</strong> This calculator provides estimates only. 
+    Alberta, Saskatchewan and Manitoba have no land transfer tax but require legal fees (~$2,000).
+    Monthly Payment and Total Mortgage Paid do not include property taxes, insurance, or maintenance costs. 
+    For accurate financial advice tailored to your situation, please consult a qualified mortgage professional.
+</div>
+        </div>
+
+        <!-- Amortization Schedule -->
+        <div class="schedule-container">
+            <button id="view-schedule" class="schedule-toggle" aria-label="View amortization schedule">
+                View Amortization Schedule
+                <div class="tooltip">
+                    <span class="tooltip-icon">?</span>
+                    <span class="tooltiptext">
+                        <strong>Amortization Schedule:</strong><br>
+                        • Shows yearly breakdown of payments<br>
+                        • Tracks principal vs. interest payments<br>
+                        • Shows remaining balance each year<br>
+                        • Helps visualize mortgage paydown
+                    </span>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Schedule Popup -->
+    <div class="overlay" id="schedule-overlay"></div>
+    <div class="schedule-popup" id="schedule-display">
+        <div class="schedule-header">
+            <h3>Amortization Schedule</h3>
+            <button class="close-schedule" aria-label="Close schedule">×</button>
+        </div>
+        <div class="schedule-content"></div>
+    </div>
+
+    <script>
+        // Mortgage Calculator Module
+        const MortgageCalculator = (function() {
+            // Enhanced Configuration with City-Specific Rates
+            const CONFIG = {
+                // Maximum withdrawal amounts
+                maxRRSPWithdrawal: 35000,
+                maxFHSAWithdrawal: 40000,
+                
+                // Tax credit amounts
+                craTaxCredit: 1500,
+                
+                // Provincial benefits (varies by province)
+                provincialBenefits: {
+                    'ON': 4000,  // Ontario
+                    'BC': 8250,   // British Columbia
+                    'QC': 750     // Quebec
+                },
+                
+                // CMHC insurance rates (for down payments <20%)
+                cmhcRates: [
+                    { min: 5, max: 9.99, rate: 0.04 },    // 4% for 5-9.99% down
+                    { min: 10, max: 14.99, rate: 0.031 },  // 3.1% for 10-14.99% down
+                    { min: 15, max: 19.99, rate: 0.028 }   // 2.8% for 15-19.99% down
+                ],
+                
+                // Legal fees for provinces without land transfer tax
+                legalFees: {
+                    'AB': 2000,  // Alberta average
+                    'SK': 1800,   // Saskatchewan
+                    'MB': 1900    // Manitoba
+                },
+                
+                // Payment frequency options and calculations
+                paymentFrequencies: {
+                    monthly: { 
+                        paymentsPerYear: 12, 
+                        calculatePayment: function(monthly) { return monthly; },
+                        description: "Monthly Payment"
+                    },
+                    biweekly: { 
+                        paymentsPerYear: 26, 
+                        calculatePayment: function(monthly) { return (monthly * 12) / 26; },
+                        description: "Bi-Weekly Payment"
+                    },
+                    'accelerated-biweekly': { 
+                        paymentsPerYear: 26, 
+                        calculatePayment: function(monthly) { return monthly / 2; },
+                        description: "Accelerated Bi-Weekly (Monthly/2)"
+                    },
+                    weekly: { 
+                        paymentsPerYear: 52, 
+                        calculatePayment: function(monthly) { return (monthly * 12) / 52; },
+                        description: "Weekly Payment"
+                    }
+                },
+                
+                // Land transfer tax rates by province (tiered system)
+                landTransferTaxRates: {
+                    // Ontario rates
+                    'ON': [
+                        { max: 55000, rate: 0.005 },    // 0.5% on first $55k
+                        { max: 250000, rate: 0.01 },    // 1% on $55k-$250k
+                        { max: 400000, rate: 0.015 },    // 1.5% on $250k-$400k
+                        { max: 2000000, rate: 0.02 },   // 2% on $400k-$2M
+                        { max: Infinity, rate: 0.025 }   // 2.5% on amount over $2M
+                    ],
+                    // British Columbia rates
+                    'BC': [
+                        { max: 525000, rate: 0.01 },    // 1% on first $525k
+                        { max: 525000, rate: 0.02 },    // 2% on next $525k
+                        { max: Infinity, rate: 0.03 }    // 3% on remaining amount
+                    ],
+                    // Prince Edward Island (flat rate)
+                    'PE': [
+                        { max: Infinity, rate: 0.01 }    // 1% flat rate
+                    ],
+                    // Provinces with no land transfer tax
+                    'AB': [], 'SK': [], 'MB': [], 'QC': [], 'NS': [], 'NB': [], 'NL': []
+                },
+                
+                // First-time home buyer rebates by province
+                firstTimeRebates: {
+                    'ON': { 
+                        amount: 4000,       // $4,000 maximum rebate
+                        maxPrice: 448000    // Rebate phases out above $448k
+                    },
+                    'BC': { 
+                        exemption: 500000   // Full exemption on first $500k
+                    },
+                    'PE': { 
+                        amount: 2000         // $2,000 rebate
+                    }
+                },
+                
+                // Municipal property tax rates (annual amount per $100,000 of purchase price)
+                municipalPropertyTaxRates: {
+                    // Province averages
+                    'AB': 700,    // Alberta average ($700 per $100k)
+                    'BC': 500,    // British Columbia average
+                    'MB': 1200,   // Manitoba average
+                    'NB': 1400,   // New Brunswick average
+                    'NL': 800,    // Newfoundland and Labrador average
+                    'NS': 1100,   // Nova Scotia average
+                    'ON': 1000,   // Ontario average
+                    'PE': 1100,   // Prince Edward Island average
+                    'QC': 1500,   // Quebec average
+                    'SK': 1000,   // Saskatchewan average
+                    
+                    // City-specific rates (override province averages)
+                    cityRates: {
+                        'AB': {
+                            'Calgary': 670,  // $670 per $100K
+                            'Edmonton': 870   // $870 per $100K
+                        },
+                        'BC': {
+                            'Vancouver': 280, // $280 per $100K (lowest in Canada)
+                            'Victoria': 520,  // $520 per $100K
+                            'Surrey': 310     // $310 per $100K
+                        },
+                        'MB': {
+                            'Winnipeg': 1250 // $1,250 per $100K (highest among major cities)
+                        },
+                        'NB': {
+                            'Fredericton': 1400 // $1,400 per $100K
+                        },
+                        'NL': {
+                            'St. John\'s': 800 // $800 per $100K
+                        },
+                        'NS': {
+                            'Halifax': 1150 // $1,150 per $100K
+                        },
+                        'ON': {
+                            'Toronto': 991.67,  // $991.67 per $100K
+                            'Ottawa': 1000,     // $1,000 per $100K
+                            'Mississauga': 950, // $950 per $100K
+                            'Brampton': 1100,  // $1,100 per $100K
+                            'Hamilton': 1300,   // $1,300 per $100K
+                            'London': 1400     // $1,400 per $100K
+                        },
+                        'PE': {
+                            'Charlottetown': 1100 // $1,100 per $100K
+                        },
+                        'QC': {
+                            'Montreal': 1500,    // $1,500 per $100K (highest in Canada)
+                            'Quebec City': 840   // $840 per $100K
+                        },
+                        'SK': {
+                            'Saskatoon': 1000,  // $1,000 per $100K
+                            'Regina': 1100      // $1,100 per $100K
+                        }
+                    }
+                },
+                
+                // Cities available for selection by province
+                cityOptions: {
+                    'AB': ['Calgary', 'Edmonton'],
+                    'BC': ['Vancouver', 'Victoria', 'Surrey'],
+                    'MB': ['Winnipeg'],
+                    'NB': ['Fredericton'],
+                    'NL': ['St. John\'s'],
+                    'NS': ['Halifax'],
+                    'ON': ['Toronto', 'Ottawa', 'Mississauga', 'Brampton', 'Hamilton', 'London'],
+                    'PE': ['Charlottetown'],
+                    'QC': ['Montreal', 'Quebec City'],
+                    'SK': ['Saskatoon', 'Regina']
+                }
+            };
+
+            // DOM Elements
+            const elements = {
+                province: document.getElementById('province'),
+                cityContainer: document.getElementById('city-container'),
+                citySelect: document.getElementById('city'),
+                firstTimeOptions: document.querySelectorAll('.first-time-toggle .option-toggle-option'),
+                firstTimeFields: document.querySelector('.first-time-fields'),
+                amount: document.getElementById('amount'),
+                downpaymentOptions: document.querySelectorAll('.downpayment-toggle .option-toggle-option'),
+                downpayment: document.getElementById('downpayment'),
+                pmi: document.getElementById('pmi'),
+                interest: document.getElementById('interest'),
+                loanTerm: document.getElementById('loan-term'),
+                paymentFrequency: document.getElementById('payment-frequency'),
+                rrspAmount: document.getElementById('rrsp-amount'),
+                fhsaAmount: document.getElementById('fhsa-amount'),
+                paymentLabel: document.getElementById('paymentLabel'),
+                paymentDescription: document.getElementById('paymentDescription'),
+                rrspUsed: document.getElementById('rrsp-used'),
+                fhsaUsed: document.getElementById('fhsa-used'),
+                craTaxCredit: document.getElementById('cra-tax-credit'),
+                provincialBenefit: document.getElementById('provincial-benefit'),
+                totalBenefits: document.getElementById('total-benefits'),
+                landTransferTax: document.getElementById('landTransferTax'),
+                landTransferTaxLabel: document.getElementById('landTransferTaxLabel'),
+                propertyTax: document.getElementById('propertyTax'),
+                totalInterest: document.getElementById('totalInterest'),
+                totalPaid: document.getElementById('totalPaid'),
+                viewSchedule: document.getElementById('view-schedule'),
+                scheduleDisplay: document.getElementById('schedule-display'),
+                scheduleOverlay: document.getElementById('schedule-overlay'),
+                closeSchedule: document.querySelector('.close-schedule'),
+                scheduleContent: document.querySelector('.schedule-content'),
+                errorMessages: {
+                    amount: document.getElementById('amount-error'),
+                    downpayment: document.getElementById('downpayment-error'),
+                    interest: document.getElementById('interest-error')
+                }
+            };
+
+            // State variables
+            let currentCalculation = null;
+            let currentCity = '';
+
+            // Public Methods
+            return {
+                /**
+                 * Initializes the mortgage calculator
+                 */
+                init: function() {
+                    setupEventListeners();
+                    formatCurrencyInputs();
+                    handleProvinceChange();
+                    calculateMortgage();
+                    setDefaultDownPayment();
+                }
+            };
+
+            // Private Methods
+
+            /**
+             * Sets the default down payment (20% of purchase price)
+             */
+            function setDefaultDownPayment() {
+                const amount = parseFloat(elements.amount.value.replace(/,/g, '')) || 0;
+                const downpayment = (amount * 20) / 100;
+                elements.downpayment.value = formatNumber(downpayment);
+            }
+
+            /**
+             * Sets up all event listeners for the calculator
+             */
+            function setupEventListeners() {
+                // Province change handler
+                elements.province.addEventListener('change', handleProvinceChange);
+
+                // City change handler
+                elements.citySelect.addEventListener('change', function() {
+                    currentCity = this.value;
+                    calculateMortgage();
+                });
+
+                // First-time buyer toggle handler
+                elements.firstTimeOptions.forEach(function(option) {
+                    option.addEventListener('click', function() {
+                        elements.firstTimeOptions.forEach(function(opt) {
+                            opt.classList.remove('selected');
+                            opt.setAttribute('aria-checked', 'false');
+                        });
+                        option.classList.add('selected');
+                        option.setAttribute('aria-checked', 'true');
+                        elements.firstTimeFields.style.display = 
+                            option.dataset.value === 'yes' ? 'block' : 'none';
+                        calculateMortgage();
+                    });
+                    
+                    // Keyboard accessibility for first-time toggle
+                    option.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            option.click();
+                        }
+                    });
+                });
+
+                // Down payment percentage toggle handler
+                elements.downpaymentOptions.forEach(function(option) {
+                    option.addEventListener('click', function() {
+                        const percent = parseFloat(option.dataset.percent);
+                        const amount = parseFloat(elements.amount.value.replace(/,/g, '')) || 0;
+                        const downpayment = (amount * percent) / 100;
+                        elements.downpayment.value = formatNumber(downpayment);
+                        
+                        elements.downpaymentOptions.forEach(function(opt) {
+                            opt.classList.remove('selected');
+                            opt.setAttribute('aria-checked', 'false');
+                        });
+                        option.classList.add('selected');
+                        option.setAttribute('aria-checked', 'true');
+                        
+                        calculateMortgage();
+                    });
+                    
+                    // Keyboard accessibility for down payment toggle
+                    option.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            option.click();
+                        }
+                    });
+                });
+
+                // Input field change handlers
+                const inputFields = [
+                    'province', 'amount', 'downpayment', 
+                    'interest', 'loanTerm', 'paymentFrequency',
+                    'rrspAmount', 'fhsaAmount'
+                ];
+                
+                inputFields.forEach(function(field) {
+                    if (elements[field]) {
+                        elements[field].addEventListener('change', calculateMortgage);
+                        if (field !== 'province') {
+                            elements[field].addEventListener('input', debounce(calculateMortgage, 300));
+                        }
+                    }
+                });
+
+                // Amortization schedule handlers
+                elements.viewSchedule.addEventListener('click', showAmortizationSchedule);
+                elements.closeSchedule.addEventListener('click', hideAmortizationSchedule);
+                elements.scheduleOverlay.addEventListener('click', hideAmortizationSchedule);
+            }
+
+            /**
+             * Handles province change events
+             */
+            function handleProvinceChange() {
+                const province = elements.province.value;
+                
+                // Update city options based on selected province
+                updateCityOptions(province);
+                calculateMortgage();
+            }
+            
+            /**
+             * Updates the city dropdown based on selected province
+             * @param {string} province - The selected province code
+             */
+            function updateCityOptions(province) {
+                const cities = CONFIG.cityOptions[province] || [];
+                elements.citySelect.innerHTML = '<option value="">-- Select a city --</option>';
+                
+                if (cities.length > 0) {
+                    elements.cityContainer.style.display = 'block';
+                    cities.forEach(function(city) {
+                        const option = document.createElement('option');
+                        option.value = city;
+                        option.textContent = city;
+                        elements.citySelect.appendChild(option);
+                    });
+                } else {
+                    elements.cityContainer.style.display = 'none';
+                    currentCity = '';
+                }
+            }
+
+            /**
+             * Formats currency inputs with commas
+             */
+            function formatCurrencyInputs() {
+                const currencyFields = [
+                    'amount', 'downpayment', 'rrspAmount', 'fhsaAmount'
+                ];
+                
+                currencyFields.forEach(function(field) {
+                    if (elements[field]) {
+                        elements[field].addEventListener('focus', function() {
+                            this.value = this.value.replace(/,/g, '');
+                        });
+                        
+                        elements[field].addEventListener('blur', function() {
+                            this.value = formatNumber(parseFloat(this.value) || 0);
+                        });
+                    }
+                });
+            }
+
+            /**
+             * Validates all calculator inputs
+             * @returns {boolean} True if all inputs are valid, false otherwise
+             */
+            function validateInputs() {
+                let isValid = true;
+                
+                // Validate purchase price
+                const amount = parseFloat(elements.amount.value.replace(/,/g, '')) || 0;
+                if (amount <= 0 || isNaN(amount)) {
+                    showError('amount', 'Purchase price must be greater than $0');
+                    isValid = false;
+                } else {
+                    clearError('amount');
+                }
+                
+                // Validate down payment
+                const downpayment = parseFloat(elements.downpayment.value.replace(/,/g, '')) || 0;
+                if (downpayment < 0 || isNaN(downpayment)) {
+                    showError('downpayment', 'Down payment cannot be negative');
+                    isValid = false;
+                } else if (downpayment >= amount) {
+                    showError('downpayment', 'Down payment must be less than purchase price');
+                    isValid = false;
+                } else {
+                    clearError('downpayment');
+                }
+                
+                // Validate interest rate
+                const interestRate = parseFloat(elements.interest.value) || 0;
+                if (interestRate <= 0 || interestRate > 30 || isNaN(interestRate)) {
+                    showError('interest', 'Interest rate must be between 0.01% and 30%');
+                    isValid = false;
+                } else {
+                    clearError('interest');
+                }
+                
+                return isValid;
+            }
+
+            /**
+             * Shows an error message for a field
+             * @param {string} field - The field ID
+             * @param {string} message - The error message to display
+             */
+            function showError(field, message) {
+                const errorElement = elements.errorMessages[field];
+                if (errorElement) {
+                    errorElement.textContent = message;
+                    errorElement.style.display = 'block';
+                    document.getElementById(field).classList.add('input-error');
+                }
+            }
+
+            /**
+             * Clears an error message for a field
+             * @param {string} field - The field ID
+             */
+            function clearError(field) {
+                const errorElement = elements.errorMessages[field];
+                if (errorElement) {
+                    errorElement.textContent = '';
+                    errorElement.style.display = 'none';
+                    document.getElementById(field).classList.remove('input-error');
+                }
+            }
+
+            /**
+             * Main mortgage calculation function
+             */
+            function calculateMortgage() {
+                try {
+                    if (!validateInputs()) return;
+                    
+                    // Get input values
+                    const amount = parseFloat(elements.amount.value.replace(/,/g, '')) || 0;
+                    const interestRate = parseFloat(elements.interest.value) || 0;
+                    const loanTerm = parseInt(elements.loanTerm.value) || 25;
+                    const province = elements.province.value;
+                    const isFirstTime = document.querySelector('.first-time-toggle .option-toggle-option.selected').dataset.value === 'yes';
+                    const frequency = elements.paymentFrequency.value;
+                    
+                    // Get RRSP and FHSA withdrawals (if first-time buyer)
+                    const rrspWithdrawal = isFirstTime ? Math.min(
+                        parseFloat(elements.rrspAmount.value.replace(/,/g, '')) || 0,
+                        CONFIG.maxRRSPWithdrawal
+                    ) : 0;
+                    
+                    const fhsaWithdrawal = isFirstTime ? Math.min(
+                        parseFloat(elements.fhsaAmount.value.replace(/,/g, '')) || 0,
+                        CONFIG.maxFHSAWithdrawal
+                    ) : 0;
+                    
+                    // Get municipal tax rate (per $100k of purchase price)
+                    let taxPer100k = CONFIG.municipalPropertyTaxRates[province] || 0;
+                    if (currentCity && CONFIG.municipalPropertyTaxRates.cityRates[province] && 
+                        CONFIG.municipalPropertyTaxRates.cityRates[province][currentCity]) {
+                        taxPer100k = CONFIG.municipalPropertyTaxRates.cityRates[province][currentCity];
+                    }
+                    
+                    // Calculate annual municipal tax
+                    const annualMunicipalTax = (amount / 100000) * taxPer100k;
+                    
+                    // Calculate down payment
+                    const downpayment = parseFloat(elements.downpayment.value.replace(/,/g, '')) || 0;
+                    
+                    // Validate inputs
+                    if (amount <= 0 || downpayment >= amount) {
+                        throw new Error("Invalid purchase price or down payment");
+                    }
+                    
+                    // Calculate CMHC insurance
+                    const cmhcAmount = calculateCMHC(amount, downpayment);
+                    elements.pmi.value = formatNumber(cmhcAmount);
+                    
+                    // Calculate loan details (accounting for RRSP/FHSA withdrawals)
+                    const loanAmount = amount - downpayment - rrspWithdrawal - fhsaWithdrawal + cmhcAmount;
+                    const monthlyRate = interestRate / 100 / 12;
+                    const totalPayments = loanTerm * 12;
+                    
+                    // Calculate STANDARD monthly payment (for amortization)
+                    const monthlyPayment = calculatePayment(loanAmount, monthlyRate, totalPayments);
+                    
+                    // Calculate payment for selected frequency
+                    const freqConfig = CONFIG.paymentFrequencies[frequency];
+                    const freqPayment = freqConfig.calculatePayment(monthlyPayment);
+                    
+                    // Calculate amortization
+                    const amortization = calculateAmortization(
+                        loanAmount, 
+                        monthlyRate, 
+                        monthlyPayment, 
+                        totalPayments
+                    );
+                    
+                    // Calculate benefits
+                    const benefits = calculateBenefits(amount, province, isFirstTime);
+                    
+                    // Calculate land transfer tax or legal fees
+                    const landTransferTax = calculateLandTransferTax(amount, province, isFirstTime);
+                    
+                    // Store calculation for schedule
+                    currentCalculation = {
+                        principal: loanAmount,
+                        rate: monthlyRate,
+                        payment: monthlyPayment,
+                        term: totalPayments,
+                        frequency: frequency,
+                        rrspWithdrawal: rrspWithdrawal,
+                        fhsaWithdrawal: fhsaWithdrawal
+                    };
+                    
+                    // Update UI with results
+                    updateResults({
+                        paymentAmount: freqPayment,
+                        paymentDescription: freqConfig.description,
+                        totalInterest: amortization.totalInterest,
+                        totalPaid: amortization.totalPaid,
+                        benefits: benefits,
+                        landTransferTax: landTransferTax,
+                        annualMunicipalTax: annualMunicipalTax,
+                        amount: amount,
+                        isFirstTime: isFirstTime,
+                        province: province,
+                        rrspWithdrawal: rrspWithdrawal,
+                        fhsaWithdrawal: fhsaWithdrawal
+                    });
+                    
+                } catch (error) {
+                    console.error("Calculation error:", error);
+                }
+            }
+
+            /**
+             * Calculates the monthly payment amount
+             * @param {number} principal - The loan amount
+             * @param {number} monthlyRate - The monthly interest rate
+             * @param {number} totalPayments - Total number of payments
+             * @returns {number} The monthly payment amount
+             */
+            function calculatePayment(principal, monthlyRate, totalPayments) {
+                if (monthlyRate === 0) return principal / totalPayments;
+                
+                const factor = Math.pow(1 + monthlyRate, totalPayments);
+                return principal * monthlyRate * factor / (factor - 1);
+            }
+
+            /**
+             * Calculates the amortization details
+             * @param {number} principal - The loan amount
+             * @param {number} rate - The monthly interest rate
+             * @param {number} payment - The monthly payment amount
+             * @param {number} term - Total number of payments
+             * @returns {object} Contains total interest and total paid
+             */
+            function calculateAmortization(principal, rate, payment, term) {
+                let balance = principal;
+                let totalInterest = 0;
+                let totalPaid = 0;
+                let months = 0;
+                
+                while (balance > 0 && months < term) {
+                    const interest = balance * rate;
+                    const principalPayment = Math.min(payment - interest, balance);
+                    
+                    balance -= principalPayment;
+                    totalInterest += interest;
+                    totalPaid += payment;
+                    months++;
+                }
+                
+                return { 
+                    totalInterest: parseFloat(totalInterest.toFixed(2)),
+                    totalPaid: parseFloat(totalPaid.toFixed(2)), 
+                    months: months 
+                };
+            }
+
+            /**
+             * Calculates CMHC insurance amount
+             * @param {number} amount - The purchase price
+             * @param {number} downpayment - The down payment amount
+             * @returns {number} The CMHC insurance amount
+             */
+            function calculateCMHC(amount, downpayment) {
+                const percentDown = (downpayment / amount) * 100;
+                const rate = CONFIG.cmhcRates.find(function(r) {
+                    return percentDown >= r.min && percentDown < r.max;
+                });
+                return rate ? (amount - downpayment) * rate.rate : 0;
+            }
+
+            /**
+             * Calculates first-time home buyer benefits
+             * @param {number} amount - The purchase price
+             * @param {string} province - The province code
+             * @param {boolean} isFirstTime - Whether the buyer is first-time
+             * @returns {object} Contains CRA and provincial benefit amounts
+             */
+            function calculateBenefits(amount, province, isFirstTime) {
+                if (!isFirstTime) return { cra: 0, provincial: 0 };
+                
+                // Calculate provincial benefit
+                let provincialBenefit = 0;
+                if (province === 'ON') {
+                    provincialBenefit = Math.min(
+                        CONFIG.provincialBenefits['ON'], 
+                        calculateLandTransferTax(amount, province, false).provincial
+                    );
+                } else if (province === 'BC') {
+                    provincialBenefit = CONFIG.provincialBenefits['BC'];
+                } else if (province === 'QC') {
+                    provincialBenefit = CONFIG.provincialBenefits['QC'];
+                }
+                
+                return {
+                    cra: CONFIG.craTaxCredit,
+                    provincial: provincialBenefit
+                };
+            }
+
+            /**
+             * Calculates land transfer tax with first-time buyer rebates
+             * @param {number} price - The purchase price
+             * @param {string} province - The province code
+             * @param {boolean} isFirstTimeBuyer - Whether the buyer is first-time
+             * @returns {object} Contains provincial and total tax amounts
+             */
+            function calculateLandTransferTax(price, province, isFirstTimeBuyer) {
+                // Provinces with no LTT show legal fees instead
+                if (['AB', 'SK', 'MB'].includes(province)) {
+                    return {
+                        provincial: 0,
+                        total: CONFIG.legalFees[province] || 0,
+                        isLegalFee: true
+                    };
+                }
+                
+                // Provincial tax calculation
+                let provincialTax = calculateTieredTax(price, CONFIG.landTransferTaxRates[province] || []);
+                
+                // Apply first-time buyer rebates if applicable
+                if (isFirstTimeBuyer && CONFIG.firstTimeRebates[province]) {
+                    const rebate = CONFIG.firstTimeRebates[province];
+                    
+                    if (rebate.exemption) {
+                        // BC-style full exemption (first $500k free)
+                        const exemptAmount = Math.min(price, rebate.exemption);
+                        const exemptTax = calculateTieredTax(exemptAmount, CONFIG.landTransferTaxRates[province]);
+                        provincialTax = Math.max(0, provincialTax - exemptTax);
+                    } 
+                    else if (rebate.amount) {
+                        // ON/PE-style fixed rebate
+                        provincialTax = Math.max(0, provincialTax - rebate.amount);
+                        
+                        // Ontario additional rule: rebate phases out above max price
+                        if (province === 'ON' && price > rebate.maxPrice) {
+                            provincialTax = calculateTieredTax(price, CONFIG.landTransferTaxRates[province]); // No rebate
+                        }
+                    }
+                }
+
+                return {
+                    provincial: provincialTax,
+                    total: provincialTax, // Some provinces may add municipal portions later
+                    isLegalFee: false
+                };
+            }
+
+            /**
+             * Calculates tiered tax based on brackets
+             * @param {number} amount - The amount to tax
+             * @param {array} tiers - Array of tax brackets
+             * @returns {number} The calculated tax amount
+             */
+            function calculateTieredTax(amount, tiers) {
+                if (tiers.length === 0) return 0;
+                
+                let tax = 0;
+                let remaining = amount;
+                
+                for (let i = 0; i < tiers.length; i++) {
+                    const tier = tiers[i];
+                    const bracketSize = tier.max === Infinity ? remaining : 
+                        Math.min(remaining, tier.max - (i === 0 ? 0 : tiers[i-1].max));
+                    tax += bracketSize * tier.rate;
+                    remaining -= bracketSize;
+                    
+                    if (remaining <= 0) break;
+                }
+                
+                return parseFloat(tax.toFixed(2));
+            }
+
+            /**
+             * Shows the amortization schedule popup
+             */
+            function showAmortizationSchedule() {
+                if (!currentCalculation) return;
+                
+                const schedule = generateSchedule(
+                    currentCalculation.principal,
+                    currentCalculation.rate,
+                    currentCalculation.payment,
+                    currentCalculation.term
+                );
+                
+                renderSchedule(schedule);
+                elements.scheduleDisplay.style.display = 'block';
+                elements.scheduleOverlay.style.display = 'block';
+            }
+
+            /**
+             * Hides the amortization schedule popup
+             */
+            function hideAmortizationSchedule() {
+                elements.scheduleDisplay.style.display = 'none';
+                elements.scheduleOverlay.style.display = 'none';
+            }
+
+            /**
+             * Generates an amortization schedule
+             * @param {number} principal - The loan amount
+             * @param {number} rate - The monthly interest rate
+             * @param {number} payment - The monthly payment amount
+             * @param {number} term - Total number of payments
+             * @returns {array} Array of yearly payment details
+             */
+            function generateSchedule(principal, rate, payment, term) {
+                let balance = principal;
+                let schedule = [];
+                let year = 1;
+                let yearPrincipal = 0;
+                let yearInterest = 0;
+                let startingBalance = principal;
+
+                for (let month = 1; month <= term && balance > 0; month++) {
+                    const interest = balance * rate;
+                    let principalPayment = payment - interest;
+                    
+                    if (principalPayment > balance) {
+                        principalPayment = balance;
+                    }
+                    
+                    balance -= principalPayment;
+                    yearPrincipal += principalPayment;
+                    yearInterest += interest;
+
+                    // Group by year
+                    if (month % 12 === 0 || month === term || balance <= 0) {
+                        schedule.push({
+                            year: year,
+                            startingBalance: startingBalance,
+                            principal: yearPrincipal,
+                            interest: yearInterest,
+                            endingBalance: balance > 0 ? balance : 0
+                        });
+                        
+                        year++;
+                        startingBalance = balance;
+                        yearPrincipal = 0;
+                        yearInterest = 0;
+                    }
+                }
+
+                return schedule;
+            }
+
+            /**
+             * Renders the amortization schedule table
+             * @param {array} schedule - The amortization schedule data
+             */
+            function renderSchedule(schedule) {
+                elements.scheduleContent.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Starting Balance</th>
+                                <th>Principal Paid</th>
+                                <th>Interest Paid</th>
+                                <th>Remaining Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${schedule.map(function(year) {
+                                return `
+                                    <tr>
+                                        <td>${year.year}</td>
+                                        <td>$${formatNumber(year.startingBalance)}</td>
+                                        <td>$${formatNumber(year.principal)}</td>
+                                        <td>$${formatNumber(year.interest)}</td>
+                                        <td>$${formatNumber(year.endingBalance)}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                    <div class="schedule-summary">
+                        <p>Total Principal Paid: $${formatNumber(schedule.reduce(function(sum, y) {
+                            return sum + y.principal;
+                        }, 0))}</p>
+                        <p>Total Interest Paid: $${formatNumber(schedule.reduce(function(sum, y) {
+                            return sum + y.interest;
+                        }, 0))}</p>
+                    </div>
+                `;
+            }
+
+            /**
+             * Updates the results display
+             * @param {object} data - Contains all calculation results
+             */
+            function updateResults(data) {
+                // Format all numbers with commas and 2 decimal places
+                const format = function(num) {
+                    return num.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                };
+
+                // Update payment information
+                elements.paymentLabel.textContent = `$${format(data.paymentAmount)}`;
+                elements.paymentDescription.textContent = data.paymentDescription;
+                
+                // Update RRSP and FHSA information
+                elements.rrspUsed.textContent = `$${format(data.rrspWithdrawal)}`;
+                elements.fhsaUsed.textContent = `$${format(data.fhsaWithdrawal)}`;
+                
+                // Show/hide RRSP/FHSA rows based on first-time status
+                document.getElementById('rrsp-row').style.display = data.isFirstTime ? 'flex' : 'none';
+                document.getElementById('fhsa-row').style.display = data.isFirstTime ? 'flex' : 'none';
+                
+                // Update benefits information
+                elements.craTaxCredit.textContent = `$${format(data.benefits.cra)}`;
+                elements.provincialBenefit.textContent = `$${format(data.benefits.provincial)}`;
+                elements.totalBenefits.textContent = `$${format(data.benefits.cra + data.benefits.provincial)}`;
+                
+                // Update tax information
+                if (data.landTransferTax.isLegalFee) {
+                    elements.landTransferTaxLabel.textContent = "Legal Fees";
+                } else {
+                    elements.landTransferTaxLabel.textContent = "Land Transfer Tax";
+                }
+                elements.landTransferTax.textContent = `$${format(data.landTransferTax.total)}`;
+                elements.propertyTax.textContent = `$${format(data.annualMunicipalTax)}`;
+                
+                // Update mortgage totals
+                elements.totalInterest.textContent = `$${format(data.totalInterest)}`;
+                elements.totalPaid.textContent = `$${format(data.totalPaid)}`;
+            }
+
+            /**
+             * Formats a number with commas and 2 decimal places
+             * @param {number} num - The number to format
+             * @returns {string} The formatted number string
+             */
+            function formatNumber(num) {
+                return num.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+            }
+
+            /**
+             * Debounce function to limit rapid firing of events
+             * @param {function} func - The function to debounce
+             * @param {number} wait - The wait time in milliseconds
+             * @returns {function} The debounced function
+             */
+            function debounce(func, wait) {
+                let timeout;
+                return function() {
+                    const context = this;
+                    const args = arguments;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(function() {
+                        func.apply(context, args);
+                    }, wait);
+                };
+            }
+        })();
+
+        // Initialize Calculator when DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            MortgageCalculator.init();
+        });
+    </script>
+</body>
+</html>
